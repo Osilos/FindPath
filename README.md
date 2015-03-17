@@ -1,2 +1,2 @@
 # FindPath
-Librairie de Pathfinding
+Librairie de Pathfinding créé par Flavien Marianacce
