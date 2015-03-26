@@ -4,6 +4,53 @@ function FindPath() {
     var gridHeight = 0;
     var grid = [];
 
+    var valueEmptyCell = 0;
+    var valueTakenCell = -1;
+
+
+    /*
+    Attribut a valueEmptyCell une autre valeur
+     */
+    var configEmptyCell = function (value) {
+        if (value <= valueTakenCell) {
+            console.error("FindPath: Value of EmptyCell must be greater and different than value of TakenCell");
+            return false;
+        } else if (value === false) {
+            console.error('FindPath: Value of EmptyCell cannot be "false"');
+            return false;
+        } else {
+            valueEmptyCell = value;
+            return true;
+        }
+    }
+
+
+    /*
+    Attribut a valueTakenCell une autre valeur
+     */
+    var configTakenCell = function (value) {
+        if (value >= valueEmptyCell) {
+            if (value == true) {
+                console.error("FindPath: Becarefull ! Value of TakenCell must be smaller and different than value of EmptyCell, you should change it.");        
+            } else {
+                console.error("FindPath: Value of TakenCell must be smaller and different than value of EmptyCell");
+            }
+        } else {
+            valueTakenCell = value;
+            return true;
+        }
+    }
+
+    /*
+    Vérifie que la configuration est correcte.
+     */
+    function checkConfig () {
+        if (valueEmptyCell <= valueTakenCell) {
+            console.error("FindPath: Value of EmptyCell or TakenCell are badly config");
+            return false;
+        } else return true;
+    }
+
     function initPath(pGrid){
         gridHeight = pGrid.length;
         gridWidth = pGrid[0].length;
@@ -20,27 +67,30 @@ function FindPath() {
      * @return {[array]}           [tableau du chemin]
      */
     var On = function(posXstart, posYstart, posXend, posYend, pGrid) {
+        if (!checkConfig()) return false;
+
         var waysuccess = true;
 
         initPath(pGrid);
 
-        var cellArray = findFreeCell(posXstart, posYstart, 1);
-        var count = 1;
-        while (grid[posYend][posXend] === 0) {
-            console.log(new Date().getTime());
+        var count = valueEmptyCell + 1;
+        var cellArray = findFreeCell(posXstart, posYstart, count);
+        
+        while (grid[posYend][posXend] === valueEmptyCell) {
             count += 1;
             cellArray = findTheEnd(cellArray, count);
 
             if (count > gridHeight * gridWidth) {
                 waysuccess = false;
                 break;
-            } else if (grid[posYend][posXend] != 0 && cellArray.length === 0) {
+            } else if (grid[posYend][posXend] != valueEmptyCell && cellArray.length === valueEmptyCell) {
                 waysucces = true;
             }
         }
 
         if (waysuccess) {
             var a = buildThePath(posXend, posYend, count);
+            a.pop();
             return a;
         } else {
             console.log("wrong way");
@@ -62,7 +112,7 @@ function FindPath() {
         var y = posY;
 
         path.push([posX, posY]);
-        while (grid[y][x] != 1 && path.length <= pCount) {
+        while (grid[y][x] != valueEmptyCell + 1 && path.length <= pCount) {
             var ltemp = findTheValue(x, y, grid[y][x] - 1);
             if (ltemp != false) {
                 x = ltemp[0];
@@ -122,19 +172,19 @@ function FindPath() {
      */
     function findFreeCell(posX, posY, pNumber) {
         var arrayWay = [];
-        var number = pNumber || 0;
+        var number = pNumber || valueEmptyCell;
         grid[posY][posX] = pNumber;
 
-        if (leftCell(posY, posX) === 0) {
+        if (leftCell(posY, posX) === valueEmptyCell) {
             arrayWay.push([posX - 1, posY]);
         }
-        if (rightCell(posY, posX) === 0) {
+        if (rightCell(posY, posX) === valueEmptyCell) {
             arrayWay.push([posX + 1, posY]);
         }
-        if (downCell(posY, posX) === 0) {
+        if (downCell(posY, posX) === valueEmptyCell) {
             arrayWay.push([posX, posY + 1]);
         }
-        if (upCell(posY, posX) === 0) {
+        if (upCell(posY, posX) === valueEmptyCell) {
             arrayWay.push([posX, posY - 1]);
         }
 
@@ -199,7 +249,7 @@ function FindPath() {
      * @return {[array]}         [tableau du chemin]
      */
     var To = function(targetX, targetY, playerX, playerY, pGrid) {
-        pGrid[targetY][targetX] = 0;
+        pGrid[targetY][targetX] = valueEmptyCell;
         var way = On(playerX, playerY, targetX, targetY, pGrid);
         way.shift();
         return way;
@@ -207,6 +257,8 @@ function FindPath() {
 
     return {
         On: On,
-        To: To
+        To: To,
+        configEmptyCell: configEmptyCell,
+        configTakenCell: configTakenCell
     }
 }
