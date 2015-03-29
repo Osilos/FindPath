@@ -125,7 +125,7 @@ Toutes les fonctions de configuration renvoie la valeur actuel de la configurati
 	Par default la recherche en diagonal est activé.
 
 
-## Diagonal
+## Aside
 
 	> FindPath.config.Aside(value);
 	
