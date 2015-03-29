@@ -1,0 +1,9 @@
+Findpath : Change log Beta 1.1
+
+-Ajout de la recherche en diagonal
+-Ajout de la config d'activer/desactiver la recherche en diagonal
+-Ajout de la config d'activer/desactiver la recherche horizontal-vertical
+
+-Changement de la façon de configurer findpath
+
+-maj et correction du readme 

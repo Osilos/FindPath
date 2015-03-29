@@ -1,5 +1,5 @@
 function FindPath() {
-    
+
     var gridWidth = 0;
     var gridHeight = 0;
     var grid = [];
@@ -7,11 +7,57 @@ function FindPath() {
     var valueEmptyCell = 0;
     var valueTakenCell = -1;
 
+    var allowDiagonal = true;
+    var allowAside = true;
+
+    var print = function () {
+        console.log("EmptyCell = " + valueEmptyCell, "TakenCell = " + valueTakenCell, "Diagonal = " + allowDiagonal, "Aside = " + allowAside);
+    }
+
+    /*
+    Fonction qui active ou désactie la recherche en diagonal.
+     */
+    var Diagonal = function (value) {
+        if (value === undefined) return allowDiagonal;
+        if (value === true || value === false) {
+            if (value === true) allowDiagonal = value;
+            else if (value === false && allowAside === true) allowDiagonal = value;
+            else if (value === false && allowAside === false) {
+                console.error("FindPath: La recherche en diagonale ne peux pas être désactivée si la recherche des cases adjacentes est désativé.");
+                return false;
+            }
+        } else {
+            console.error("FindPath: La fonction configDiagonal prend en parametre 'true' ou 'false'");
+            return false;
+        }
+        return true;
+    };
+
+    /*
+    Fonction qui active ou désactie la recherche horizontal et vertical.
+     */
+    var Aside = function (value) {
+        if (value === undefined) return allowAside;
+        if (value === true || value === false) {
+            if (value === true) allowAside = value;
+            else if (value === false && allowDiagonal === true) allowAside = value;
+            else if (value === false && allowDiagonal === false) {
+                console.error("FindPath: La recherche des cases adjacentes ne peux pas être désactivée si la recherche des cases diagonales est désativé.");
+                return false;
+            }
+        } else {
+            console.error("FindPath: La fonction configAside prend en parametre 'true' ou 'false'");
+            return false;
+        }
+        return true;
+    };
+
 
     /*
     Attribut a valueEmptyCell une autre valeur
      */
-    var configEmptyCell = function (value) {
+    var EmptyCell = function(value) {
+        if (value === undefined) return valueEmptyCell;
         if (value <= valueTakenCell) {
             console.error("FindPath: Value of EmptyCell must be greater and different than value of TakenCell");
             return false;
@@ -28,10 +74,11 @@ function FindPath() {
     /*
     Attribut a valueTakenCell une autre valeur
      */
-    var configTakenCell = function (value) {
+    var TakenCell = function(value) {
+        if (value === undefined) return valueTakenCell;
         if (value >= valueEmptyCell) {
             if (value == true) {
-                console.error("FindPath: Becarefull ! Value of TakenCell must be smaller and different than value of EmptyCell, you should change it.");        
+                console.error("FindPath: Becarefull ! Value of TakenCell must be smaller and different than value of EmptyCell, you should change it.");
             } else {
                 console.error("FindPath: Value of TakenCell must be smaller and different than value of EmptyCell");
             }
@@ -44,14 +91,14 @@ function FindPath() {
     /*
     Vérifie que la configuration est correcte.
      */
-    function checkConfig () {
+    function checkConfig() {
         if (valueEmptyCell <= valueTakenCell) {
             console.error("FindPath: Value of EmptyCell or TakenCell are badly config");
             return false;
         } else return true;
     }
 
-    function initPath(pGrid){
+    function initPath(pGrid) {
         gridHeight = pGrid.length;
         gridWidth = pGrid[0].length;
         grid = pGrid;
@@ -75,7 +122,7 @@ function FindPath() {
 
         var count = valueEmptyCell + 1;
         var cellArray = findFreeCell(posXstart, posYstart, count);
-        
+
         while (grid[posYend][posXend] === valueEmptyCell) {
             count += 1;
             cellArray = findTheEnd(cellArray, count);
@@ -131,15 +178,25 @@ function FindPath() {
      * @return {array}        [tableau de la case correspondante]
      */
     var findTheValue = function(pX, pY, pCount) {
-        if (leftCell(pY, pX) === pCount) {
-            return [pX - 1, pY];
-        } else if (rightCell(pY, pX) === pCount) {
-            return [pX + 1, pY];
-        } else if (downCell(pY, pX) === pCount) {
-            return [pX, pY + 1];
-        } else if (upCell(pY, pX) === pCount) {
-            return [pX, pY - 1];
-        } else return false;
+
+        if (allowAside) { //Si les cases horizontale et vertical sont activées
+            for (var i = asideCell.length - 1; i >= 0; i--) {
+                if (asideCell[i](pY, pX) === pCount) {
+                    return asideCell[i](pY, pX, true);
+                }
+            };
+        }
+
+        if (allowDiagonal) { //Si les cases en diagonales sont activées
+            for (var j = diagonalCell.length - 1; j >= 0; j--) {
+                if (diagonalCell[j](pY, pX) === pCount) {
+                    return diagonalCell[j](pY, pX, true);
+                }
+            };
+        }
+
+
+        return false;
     };
 
     /**
@@ -175,17 +232,23 @@ function FindPath() {
         var number = pNumber || valueEmptyCell;
         grid[posY][posX] = pNumber;
 
-        if (leftCell(posY, posX) === valueEmptyCell) {
-            arrayWay.push([posX - 1, posY]);
+
+        if (allowAside) { //Si les cases horizontale et vertical sont activées
+            for (var i = asideCell.length - 1; i >= 0; i--) {
+                if (asideCell[i](posY, posX) === valueEmptyCell) {
+                    grid[asideCell[i](posY, posX, true)[1]][asideCell[i](posY, posX, true)[0]] = pNumber + 1;
+                    arrayWay.push(asideCell[i](posY, posX, true));
+                }
+            };            
         }
-        if (rightCell(posY, posX) === valueEmptyCell) {
-            arrayWay.push([posX + 1, posY]);
-        }
-        if (downCell(posY, posX) === valueEmptyCell) {
-            arrayWay.push([posX, posY + 1]);
-        }
-        if (upCell(posY, posX) === valueEmptyCell) {
-            arrayWay.push([posX, posY - 1]);
+
+        if (allowDiagonal) {//Si les cases en diagonales sont activées
+            for (var j = diagonalCell.length - 1; j >= 0; j--) {
+                if (diagonalCell[j](posY, posX) === valueEmptyCell) {
+                    grid[diagonalCell[j](posY, posX, true)[1]][diagonalCell[j](posY, posX, true)[0]] = pNumber + 1;
+                    arrayWay.push(diagonalCell[j](posY, posX, true));
+                }
+            };            
         }
 
         if (arrayWay.length === 0) return false;
@@ -196,9 +259,12 @@ function FindPath() {
      * recupère la valeur de la case de gauche de la case ciblé
      * @param  {[number]} pY    [position en Y de la case ciblé]
      * @param  {[number]} pX    [position en X de la case ciblé]
+     * @param  {bool}     pArray[si true renvoie la valeur un array de la position de la case de gauche]
      * @return {[number]}       [valeur de la case de gauche]
      */
-    var leftCell = function(pY, pX) {
+    var leftCell = function(pY, pX, pArray) {
+        pArray = pArray || false;
+        if (pArray) return [pX - 1, pY];
         if (pX - 1 >= 0 && pX - 1 <= gridWidth && pX > 0) {
             return grid[pY][pX - 1];
         } else return false;
@@ -209,9 +275,12 @@ function FindPath() {
      * recupère la valeur de la case de droite de la case ciblé
      * @param  {[number]} pY    [position en Y de la case ciblé]
      * @param  {[number]} pX    [position en X de la case ciblé]
+     * @param  {bool}     pArray[si true renvoie la valeur un array de la position de la cas de droite]
      * @return {[number]}       [valeur de la case de droite]
      */
-    var rightCell = function(pY, pX) {
+    var rightCell = function(pY, pX, pArray) {
+        pArray = pArray || false;
+        if (pArray) return [pX + 1, pY];
         if (pX + 1 >= 0 && pX + 1 <= gridWidth && pX < gridWidth - 1) {
             return grid[pY][pX + 1];
         } else return false;
@@ -221,9 +290,12 @@ function FindPath() {
      * recupère la valeur de la case en bas de la case ciblé
      * @param  {[number]} pY    [position en Y de la case ciblé]
      * @param  {[number]} pX    [position en X de la case ciblé]
+     * @param  {bool}     pArray[si true renvoie la valeur un array de la position de la cas du bas]
      * @return {[number]}       [valeur de la case en bas]
      */
-    var downCell = function(pY, pX) {
+    var downCell = function(pY, pX, pArray) {
+        pArray = pArray || false;
+        if (pArray) return [pX, pY + 1];
         if (pY + 1 >= 0 && pY + 1 <= gridHeight && pY < gridHeight - 1) {
             return grid[pY + 1][pX];
         } else return false;
@@ -233,16 +305,87 @@ function FindPath() {
      * recupère la valeur de la case du haut de la case ciblé
      * @param  {[number]} pY    [position en Y de la case ciblé]
      * @param  {[number]} pX    [position en X de la case ciblé]
+     * @param  {bool}     pArray[si true renvoie la valeur un array de la position de la cas du haut]
      * @return {[number]}       [valeur de la case du haut]
      */
-    var upCell = function(pY, pX) {
+    var upCell = function(pY, pX, pArray) {
+        pArray = pArray || false;
+        if (pArray) return [pX, pY - 1];
         if (pY - 1 >= 0 && pY - 1 <= gridHeight && pY > 0) {
             return grid[pY - 1][pX];
         } else return false;
     };
+
+    /**
+     * recupère la valeur de la case du haut a gauche de la case ciblé
+     * @param  {[number]} pY    [position en Y de la case ciblé]
+     * @param  {[number]} pX    [position en X de la case ciblé]
+     * @param  {bool}     pArray[si true renvoie la valeur un array de la position de la case en haut à gauche]
+     * @return {[number]}       [valeur de la case du haut]
+     */
+    var upLeftCell = function(pY, pX, pArray) {
+        pArray = pArray || false;
+        if (pArray) return [pX - 1, pY - 1];
+        if (pX - 1 >= 0 && pX - 1 <= gridWidth && pX > 0 && pY - 1 >= 0 && pY - 1 <= gridHeight && pY > 0) {
+            return grid[pY - 1][pX - 1];
+        } else return false;
+    };
+
+
+    /**
+     * recupère la valeur de la case du haut a droite de la case ciblé
+     * @param  {[number]} pY    [position en Y de la case ciblé]
+     * @param  {[number]} pX    [position en X de la case ciblé]
+     * @param  {bool}     pArray[si true renvoie la valeur un array de la position de la case en haut à droite]
+     * @return {[number]}       [valeur de la case du haut]
+     */
+    var upRightCell = function(pY, pX, pArray) {
+        pArray = pArray || false;
+        if (pArray) return [pX + 1, pY - 1];
+        if (pX + 1 >= 0 && pX + 1 <= gridWidth && pX < gridWidth - 1 && pY - 1 >= 0 && pY - 1 <= gridHeight && pY > 0) {
+            return grid[pY - 1][pX + 1];
+        } else return false;
+    };
+
+
+    /**
+     * recupère la valeur de la case du bas a gauche de la case ciblé
+     * @param  {[number]} pY    [position en Y de la case ciblé]
+     * @param  {[number]} pX    [position en X de la case ciblé]
+     * @param  {bool}     pArray[si true renvoie la valeur un array de la position de la case en bas à gauche]
+     * @return {[number]}       [valeur de la case du haut]
+     */
+    var downLeftCell = function(pY, pX, pArray) {
+        pArray = pArray || false;
+        if (pArray) return [pX - 1, pY + 1];
+        if (pX - 1 >= 0 && pX - 1 <= gridWidth && pX > 0 && pY + 1 >= 0 && pY + 1 <= gridHeight && pY < gridHeight - 1) {
+            return grid[pY + 1][pX - 1];
+        } else return false;
+    };
+
+
+    /**
+     * recupère la valeur de la case du bas a droite de la case ciblé
+     * @param  {[number]} pY    [position en Y de la case ciblé]
+     * @param  {[number]} pX    [position en X de la case ciblé]
+     * @param  {bool}     pArray[si true renvoie la valeur un array de la position de la case en bas à droite]
+     * @return {[number]}       [valeur de la case du haut]
+     */
+    var downRightCell = function(pY, pX, pArray) {
+        pArray = pArray || false;
+        if (pArray) return [pX + 1, pY + 1];
+        if (pX + 1 >= 0 && pX + 1 <= gridWidth && pX < gridWidth - 1 && pY + 1 >= 0 && pY + 1 <= gridHeight && pY < gridHeight - 1) {
+            return grid[pY + 1][pX + 1];
+        } else return false;
+    };
+
+
+    var asideCell = [leftCell, rightCell, upCell, downCell];
+    var diagonalCell = [downRightCell, downLeftCell, upRightCell, upLeftCell];
+
     /**
      * trouve le chemin le plus court du player à la target
-     * @param  {[number]} potX    [position en X du pot]    
+     * @param  {[number]} potX    [position en X du pot]
      * @param  {[number]} potY    [position en Y du pot]
      * @param  {[number]} playerX [position en X du player]
      * @param  {[number]} playerY [position en Y du player]
@@ -255,10 +398,17 @@ function FindPath() {
         return way;
     };
 
+    var config = {
+        EmptyCell: EmptyCell,
+        TakenCell: TakenCell,
+        Diagonal : Diagonal,
+        Aside : Aside,
+        print : print
+    }
+
     return {
         On: On,
         To: To,
-        configEmptyCell: configEmptyCell,
-        configTakenCell: configTakenCell
+        config : config
     }
 }
