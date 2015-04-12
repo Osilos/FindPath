@@ -1,4 +1,4 @@
-# FindPath Beta 1.1
+# FindPath Beta 1.2.0
 
 Librairie Javascript de Pathfinding créé par Flavien Marianacci.
 
@@ -7,6 +7,7 @@ Librairie Javascript de Pathfinding créé par Flavien Marianacci.
 L'algorythme utilisé est le Dijkstra.
 
 Il est possible d'effectuer la recherche uniquement en mode unidirectionnel.
+Il possible d'utiliser une grille composer partiellement ou totalement d'objet.
 
 # Comment l'installer
 
@@ -38,11 +39,11 @@ Exemple :
 	
 # Format de la grille
 	
-La grille être un tableau de tableaux représentant la zone de jeu.
+La grille est un tableau de tableaux représentant la zone de jeu.
 
-**Les valeurs des cases vides (ou libre) sont par default égale a 0.**
-	
-**Les valeurs des cases pleine (ou occupé) sont par default égale a -1.**
+Il faut configurer les valeurs de où le chemin peut aller (emptyCell) et là où le chemin ne peux pas aller (takenCell).
+
+Si une valeur de la grille n'est pas attribué a EmptyCell ou à TakenCell elle sera par defaut considérer comme une valeur de "takenCell".
 
 Les valeurs de la grille de jeu sont configurable, voir partie > Configuration
 	
@@ -56,8 +57,6 @@ Exemple :
 	var grille = [ [0], [0], [-1] ], 
 				 [ [0], [0], [-1] ],
 				 [ [0], [0], [-1] ];
-
-/!\ **Attention** la grille donné en paramètre sera modifier par FindPath, faite attention de ne pas l'utiliser ailleur dans votre programme.
 
 
 # Méthodes
@@ -79,7 +78,7 @@ Renvoie false si aucun chemin n'a était trouvé.
 
 Toutes les configurations sont effectué via l'objet 'config' de FindPath. 
 
-Toutes les fonctions de configuration renvoie true la configuaration a réussi et false si elle a échoué.
+Toutes les fonctions de configuration renvoie true si la configuration a réussi et false si elle a échoué.
 
 Toutes les fonctions de configuration renvoie la valeur actuel de la configuration si aucun paramètre ne leurs est donnée.
 
@@ -87,8 +86,11 @@ Toutes les fonctions de configuration renvoie la valeur actuel de la configurati
 	
 	> FindPath.config.EmptyCell(value);
 
-	Cette fonction prend en paramètre la valeur des cases libres de la grille qui sera utilisé par FindPath.
-	Cette valeur doit être supérieur et différentes de la valeur des cases pleines.
+	Cette fonction prend en paramètre la valeur des cases libres de la grille.
+	
+	Il est possible de définir plusieurs valeur pour les cases libres, en appelant plusieurs fois la fonction.
+
+	Cette valeur peut être de tout type et ne doit pas être déjà défini comme une valeur de case pleine.
 
 	Renvoie true si le changement de valeur a était effectué, false si échoué.
 	
@@ -100,8 +102,11 @@ Toutes les fonctions de configuration renvoie la valeur actuel de la configurati
 
 	> FindPath.config.TakenCell(value);
 
-	Cette fonction prend en paramètre la valeur des cases pleines de la grille qui sera utilisé par FindPath.
-	Cette valeur doit être inférieur et différentes de la valeur des cases libre.
+	Cette fonction prend en paramètre la valeur des cases pleines de la grille.
+
+	Il est possible de définir plusieurs valeur pour les cases pleines, en appelant plusieurs fois la fonction.
+
+	Cette valeur peut être de tout type et ne doit pas être déjà défini comme une valeur de case vide.
 
 	Renvoie true si le changement de valeur a était effectué, false si échoué.
 
@@ -146,3 +151,43 @@ Toutes les fonctions de configuration renvoie la valeur actuel de la configurati
 	Cette fonction ne prend aucun parametre.
 
 	Elle écrit en console la valeur actuel de toutes les configurations de Findpath.
+
+##Exemple complet
+	
+	function Ground () {
+		this.name = "ground";
+	}
+
+	function Grass () {
+		this.name = "grass";
+	}
+
+	function Wall () {
+		this.name = "wall";
+	}
+
+	function Enemy () {
+		this.name = "enemy";
+	}
+
+	var grille = [
+					[new Ground(), new Ground(), new Grass()],
+					[new Wall(), new Wall(), new Ground()],
+					[new Ground(), new Grass(), new Grass()],
+					[new Grass(), new Enemy(), new Grass()]
+				];
+
+	//Créer une nouvel objet FindPath.
+	var FP = new FindPath();
+
+	// Les objets où le player ne peux pas marcher sont 'Ground' et 'Grass'
+	FP.config.EmptyCell(Ground);
+	FP.config.EmptyCell(Grass);
+	
+	// Les objets où le player ne peux pas marcher sont 'Wall' et 'Enemy'
+	FP.config.TakenCell(Wall);
+	FP.config.TakenCell(Enemy);
+	
+	// way est égale au chemin entre le player et la target.
+	var way = FP.On(Player.x, Player.y, Target.x, Target.y, grille);
+

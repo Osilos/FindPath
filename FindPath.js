@@ -7,6 +7,9 @@ function FindPath() {
     var valueEmptyCell = 0;
     var valueTakenCell = -1;
 
+    var valueEmptyCellUser = [];
+    var valueTakenCellUser = [];
+
     var allowDiagonal = true;
     var allowAside = true;
 
@@ -57,17 +60,15 @@ function FindPath() {
     Attribut a valueEmptyCell une autre valeur
      */
     var EmptyCell = function(value) {
-        if (value === undefined) return valueEmptyCell;
-        if (value <= valueTakenCell) {
-            console.error("FindPath: Value of EmptyCell must be greater and different than value of TakenCell");
-            return false;
-        } else if (value === false) {
-            console.error('FindPath: Value of EmptyCell cannot be "false"');
-            return false;
-        } else {
-            valueEmptyCell = value;
-            return true;
-        }
+        if (value === undefined) return valueEmptyCellUser;
+        for (var i = valueTakenCellUser.length - 1; i >= 0; i--) {
+            if (value === valueTakenCellUser[i]) {
+                console.error("FindPath: Value of EmptyCell must be different than value of TakenCell");
+                return false;
+            }
+        };
+        valueEmptyCellUser.push(value);
+        return true;
     }
 
 
@@ -75,17 +76,16 @@ function FindPath() {
     Attribut a valueTakenCell une autre valeur
      */
     var TakenCell = function(value) {
-        if (value === undefined) return valueTakenCell;
-        if (value >= valueEmptyCell) {
-            if (value == true) {
-                console.error("FindPath: Becarefull ! Value of TakenCell must be smaller and different than value of EmptyCell, you should change it.");
-            } else {
-                console.error("FindPath: Value of TakenCell must be smaller and different than value of EmptyCell");
+        if (value === undefined) return valueTakenCellUser;
+        for (var i = valueEmptyCellUser.length - 1; i >= 0; i--) {
+            if (valueEmptyCellUser[i] === value) {
+                console.error("FindPath: Value of TakenCell must be different than value of EmptyCell");
+                return false;
             }
-        } else {
-            valueTakenCell = value;
-            return true;
-        }
+        };
+        
+        valueTakenCellUser.push(value);
+        return true;
     }
 
     /*
@@ -101,7 +101,38 @@ function FindPath() {
     function initPath(pGrid) {
         gridHeight = pGrid.length;
         gridWidth = pGrid[0].length;
-        grid = pGrid;
+        grid = buildGrid(pGrid);
+    }
+
+
+    /*
+    Copy and translate the value of the grid give by the user
+     */
+    function buildGrid (pGrid) {
+        var newGrid = [];
+        for (var i = 0; i < gridHeight; i++) {
+            newGrid.push([]);
+            for (var j = 0; j < gridWidth; j++) {
+                for (var m = valueEmptyCellUser.length - 1; m >= 0; m--) {
+                    //console.log(valueEmptyCellUser[m], pGrid[i][j]);
+                    if (typeof valueEmptyCellUser[m] !== "object" || typeof pGrid[i][j] !== "object") {
+                        if (pGrid[i][j] === valueEmptyCellUser[m]) {
+                            newGrid[i].push(valueEmptyCell);
+                            break;
+                        }                          
+                    } else {
+                        if (pGrid[i][j] instanceof valueEmptyCellUser[m]) {
+                            newGrid[i].push(valueEmptyCell);
+                            break;
+                        }                        
+                    }
+                    //Si ce n'est pas une valeur d'EmptyCell.
+                    newGrid[i].push(valueTakenCell);
+                };
+            }
+        }
+        console.log(newGrid);
+        return newGrid;
     }
 
     /**
@@ -397,6 +428,8 @@ function FindPath() {
         way.shift();
         return way;
     };
+
+    
 
     var config = {
         EmptyCell: EmptyCell,

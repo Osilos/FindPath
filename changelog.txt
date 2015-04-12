@@ -1,3 +1,10 @@
+FindPath : Change log Beta 1.2.0
+
+-Ajout de la possibilité de passer une grille d'objet
+-Findpath ne modifie plus la grille donnée par l'utilisateur
+-config.TakenCell et config.Emptycell peuvent avoir plusieurs valeurs
+
+
 Findpath : Change log Beta 1.1
 
 -Ajout de la recherche en diagonal
