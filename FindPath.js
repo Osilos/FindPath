@@ -115,20 +115,22 @@ function FindPath() {
             for (var j = 0; j < gridWidth; j++) {
                 for (var m = valueEmptyCellUser.length - 1; m >= 0; m--) {
                     //console.log(valueEmptyCellUser[m], pGrid[i][j]);
-                    if (typeof valueEmptyCellUser[m] !== "object" || typeof pGrid[i][j] !== "object") {
+                    if (typeof valueEmptyCellUser[m] !== "function" || typeof pGrid[i][j] !== "object") {
                         if (pGrid[i][j] === valueEmptyCellUser[m]) {
                             newGrid[i].push(valueEmptyCell);
                             break;
                         }                          
-                    } else {
+                    } else if (typeof valueEmptyCellUser[m] === "function" || typeof pGrid[i][j] === "object"){
                         if (pGrid[i][j] instanceof valueEmptyCellUser[m]) {
                             newGrid[i].push(valueEmptyCell);
                             break;
                         }                        
                     }
-                    //Si ce n'est pas une valeur d'EmptyCell.
-                    newGrid[i].push(valueTakenCell);
-                };
+
+                }
+                if (newGrid[i][j] === undefined) {
+                    newGrid[i].push(valueTakenCell); 
+                }
             }
         }
         console.log(newGrid);
